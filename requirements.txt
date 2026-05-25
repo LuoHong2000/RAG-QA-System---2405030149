@@ -1,0 +1,8 @@
+streamlit
+langchain<1.0
+chromadb
+pypdf2
+python-docx
+tiktoken
+ollama
+pyinstaller

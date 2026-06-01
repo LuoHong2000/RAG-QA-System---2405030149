@@ -1,26 +1,30 @@
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import OllamaEmbeddings
-from langchain_community.vectorstores import Chroma
-from typing import List, Optional
+from langchain_chroma import Chroma
+from typing import List, Optional, Callable
+import os
 
 class VectorStoreManager:
     def __init__(self, persist_directory: str = "./chroma_db"):
         self.persist_directory = persist_directory
-        self.embeddings = OllamaEmbeddings(model="nomic-embed-text")
+        self.embeddings = OllamaEmbeddings(model="nomic-embed-text", show_progress=False)
         self.vector_store = None
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
+            chunk_size=800,
+            chunk_overlap=150,
             length_function=len
         )
     
-    def create_vector_store(self, documents: List[str]):
+    def create_vector_store(self, documents: List[str], progress_callback: Optional[Callable[[int, int], None]] = None) -> int:
         all_chunks = []
         for doc in documents:
             chunks = self.text_splitter.split_text(doc)
             all_chunks.extend(chunks)
         
         if all_chunks:
+            total_chunks = len(all_chunks)
+            processed_chunks = 0
+            
             self.vector_store = Chroma.from_texts(
                 texts=all_chunks,
                 embedding=self.embeddings,
